@@ -1,11 +1,11 @@
-use tokio_tun;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::UdpSocket;
-use std::str::FromStr;
 use clap::Parser;
 use std::net::SocketAddr;
+use std::str::FromStr;
 use std::sync::Arc;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::UdpSocket;
 use tokio::sync::watch;
+use tokio_tun;
 
 const MTU: usize = 1500;
 
@@ -20,7 +20,6 @@ struct Args {
     remote_addr: Option<String>,
 }
 
-
 #[tokio::main]
 async fn main() {
     let args = Args::parse();
@@ -29,12 +28,14 @@ async fn main() {
         .name(&args.tun_name)
         .tap(true)
         .mtu(MTU.try_into().unwrap())
-        .try_build().unwrap();
+        .try_build()
+        .unwrap();
     let (mut tun_reader, mut tun_writer) = tokio::io::split(tun);
 
     let is_server = args.remote_addr.is_none();
 
-    let remote_addr: Option<SocketAddr> = args.remote_addr.map(|a| SocketAddr::from_str(&a).unwrap());
+    let remote_addr: Option<SocketAddr> =
+        args.remote_addr.map(|a| SocketAddr::from_str(&a).unwrap());
 
     let (addr_tx, mut addr_rx) = watch::channel(remote_addr);
 
